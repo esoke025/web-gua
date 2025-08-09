@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub - Movie Discovery</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0d0d0d;
+            color: white;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: #121212;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        header h1 {
+            color: #a855f7;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        nav a:hover {
+            color: #a855f7;
+        }
+        
+        .hero {
+            background: linear-gradient(to bottom right, #6d28d9, #9333ea);
+            padding: 50px;
+            text-align: center;
+        }
+        
+        .hero input {
+            width: 60%;
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 25px;
+            border: none;
+            outline: none;
+        }
+        
+        #moviesGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        
+        .movie-card {
+            background: #1f1f1f;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .movie-card img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+        }
+        
+        .movie-info {
+            padding: 15px;
+        }
+        
+        .movie-title {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .stars {
+            color: gold;
+        }
+        
+        .movie-details {
+            padding: 15px;
+            border-top: 1px solid #333;
+        }
+        
+        .movie-details video,
+        .movie-details iframe {
+            width: 100%;
+            border-radius: 8px;
+        }
+        
+        form {
+            padding: 30px;
+            background: #1f1f1f;
+            display: grid;
+            gap: 10px;
+        }
+        
+        form input,
+        form textarea,
+        form button {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: none;
+        }
+        
+        form button {
+            background: #a855f7;
+            color: white;
+            cursor: pointer;
+        }
+        
+        form button:hover {
+            background: #9333ea;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>CineHub</h1>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#moviesGrid">Movies</a>
+            <a href="#addMovie">Add Movie</a>
+        </nav>
+    </header>
+
+    <section class="hero" id="home">
+        <h2>Discover Amazing Movies</h2>
+        <p>Find your next favorite film from our curated collection</p>
+        <input type="text" id="searchInput" placeholder="Search for movies...">
+    </section>
+
+    <section id="addMovie">
+        <h2 style="padding: 20px;">Tambah Film Baru</h2>
+        <form id="movieForm">
+            <input type="text" id="title" placeholder="Judul Film" required>
+            <input type="text" id="poster" placeholder="URL Poster / Path Gambar" required>
+            <input type="number" step="0.1" id="rating" placeholder="Rating (0-10)" required>
+            <input type="text" id="genre" placeholder="Genre" required>
+            <input type="number" id="year" placeholder="Tahun Rilis" required>
+            <textarea id="description" placeholder="Deskripsi Film" required></textarea>
+            <input type="text" id="video" placeholder="URL Video / Path MP4 / Link YouTube">
+            <button type="submit">Tambah Film</button>
+        </form>
+    </section>
+
+    <section>
+        <div id="moviesGrid"></div>
+        <p id="noResults" style="display:none; padding: 20px;">Tidak ada hasil.</p>
+    </section>
+
+    <script>
+        const movies = [{
+            id: 1,
+            title: "SONE-209",
+            poster: "https://upload.wikimedia.org/wikipedia/en/8/8a/Dark_Knight.jpg",
+            rating: 9.0,
+            genre: "Action, Crime, Drama",
+            year: 2008,
+            description: "When the menace known as the Joker wreaks havoc and chaos...",
+            video: "assets/video/SONE-209.mp4" // contoh MP4 lokal
+        }, {
+            id: 2,
+            title: "Inception",
+            poster: "https://upload.wikimedia.org/wikipedia/en/7/7e/Inception_ver3.jpg",
+            rating: 8.8,
+            genre: "Action, Sci-Fi, Thriller",
+            year: 2010,
+            description: "A thief who steals corporate secrets through dream-sharing...",
+            video: "https://www.youtube.com/embed/YoHD9XEInc0"
+        }];
+
+        const searchInput = document.getElementById('searchInput');
+        const moviesGrid = document.getElementById('moviesGrid');
+        const noResults = document.getElementById('noResults');
+        const movieForm = document.getElementById('movieForm');
+
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating / 2);
+            const halfStar = rating % 2 >= 1;
+            let stars = '★'.repeat(fullStars);
+            if (halfStar) stars += '☆';
+            stars += '☆'.repeat(5 - fullStars - (halfStar ? 1 : 0));
+            return stars;
+        }
+
+        function createMovieCard(movie) {
+            return `
+            <div class="movie-card">
+                <img src="${movie.poster}" alt="${movie.title}">
+                <div class="movie-info">
+                    <h3 class="movie-title">${movie.title}</h3>
+                    <div><span class="stars">${generateStars(movie.rating)}</span> ${movie.rating}/10</div>
+                    <p>${movie.genre}</p>
+                </div>
+                <div class="movie-details">
+                    <p>${movie.description}</p>
+                    <p>Released: ${movie.year}</p>
+                    ${movie.video ? 
+                        (movie.video.includes("youtube.com") || movie.video.includes("youtu.be") ?
+                            `<iframe src="${movie.video}" height="250" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>` :
+                            `<video controls>
+                                <source src="${movie.video}" type="video/mp4">
+                                Browser kamu tidak mendukung video.
+                            </video>`
+                        ) : ""
+                    }
+                </div>
+            </div>
+        `;
+    }
+
+    function displayMovies(list) {
+        if (list.length === 0) {
+            moviesGrid.innerHTML = "";
+            noResults.style.display = "block";
+        } else {
+            noResults.style.display = "none";
+            moviesGrid.innerHTML = list.map(createMovieCard).join('');
+        }
+    }
+
+    searchInput.addEventListener('input', () => {
+        const term = searchInput.value.toLowerCase();
+        const filtered = movies.filter(m => 
+            m.title.toLowerCase().includes(term) ||
+            m.genre.toLowerCase().includes(term) ||
+            m.year.toString().includes(term)
+        );
+        displayMovies(filtered);
+    });
+
+    movieForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newMovie = {
+            id: movies.length + 1,
+            title: document.getElementById('title').value,
+            poster: document.getElementById('poster').value,
+            rating: parseFloat(document.getElementById('rating').value),
+            genre: document.getElementById('genre').value,
+            year: parseInt(document.getElementById('year').value),
+            description: document.getElementById('description').value,
+            video: document.getElementById('video').value
+        };
+        movies.push(newMovie);
+        displayMovies(movies);
+        movieForm.reset();
+    });
+
+    document.addEventListener('DOMContentLoaded', () => displayMovies(movies));
+    </script>
+
+</body>
+
+</html>
